@@ -20,8 +20,8 @@ function setDeviceType(type) {
     deviceType = type;
     // Adjust canvas size based on device type and window size
     if (type === 'mobile') {
-        CANVAS_WIDTH = Math.min(window.innerWidth * 0.95, 600);
-        CANVAS_HEIGHT = Math.min(window.innerHeight * 0.95, 800);
+        CANVAS_WIDTH = Math.min(window.innerWidth * 0.98, 600);
+        CANVAS_HEIGHT = Math.min(window.innerHeight * 0.9, 800);
     } else {
         CANVAS_WIDTH = Math.min(window.innerWidth * 0.8, 800);
         CANVAS_HEIGHT = Math.min(window.innerHeight * 0.8, 600);
@@ -273,18 +273,17 @@ class NimGame {
     }
 
     createButtons() {
-        const buttonHeight = 50;
-        const minButtonWidth = 80; // Minimum width for buttons
-        const maxButtonWidth = 150; // Maximum width for buttons
-        const minSpacing = 10; // Minimum spacing between buttons
+        const buttonHeight = deviceType === 'mobile' ? 60 : 50; // Larger buttons for mobile
+        const minButtonWidth = deviceType === 'mobile' ? 100 : 80;
+        const maxButtonWidth = deviceType === 'mobile' ? 180 : 150;
+        const minSpacing = deviceType === 'mobile' ? 15 : 10;
 
-        // Adjust button positions based on game state
         if (this.gameState === 'chooseTurn') {
-            const buttonWidth = 150; // Fixed width for turn choice buttons
-            const spacing = 20;
+            const buttonWidth = deviceType === 'mobile' ? 180 : 150;
+            const spacing = deviceType === 'mobile' ? 30 : 20;
             const totalWidth = buttonWidth * 2 + spacing;
             const startX = (CANVAS_WIDTH - totalWidth) / 2;
-            const startY = this.showRules ? CANVAS_HEIGHT - 120 : CANVAS_HEIGHT / 2 + 50;
+            const startY = this.showRules ? CANVAS_HEIGHT - 140 : CANVAS_HEIGHT / 2 + 50;
             
             this.turnButtons = [
                 new Button(startX, startY, buttonWidth, buttonHeight, getText('first'), COLORS.BLUE),
@@ -292,17 +291,15 @@ class NimGame {
             ];
         }
 
-        // Create step buttons with adjusted position
         if (this.gameState === 'playing') {
-            // Calculate optimal button width based on number of steps
-            const availableWidth = CANVAS_WIDTH * 0.9; // Use 90% of canvas width
+            const availableWidth = CANVAS_WIDTH * (deviceType === 'mobile' ? 0.95 : 0.9);
             const calculatedWidth = (availableWidth - (this.steps - 1) * minSpacing) / this.steps;
             const buttonWidth = Math.max(minButtonWidth, Math.min(maxButtonWidth, calculatedWidth));
-            const spacing = Math.min((CANVAS_WIDTH - buttonWidth * this.steps) / (this.steps - 1), 20);
+            const spacing = Math.min((CANVAS_WIDTH - buttonWidth * this.steps) / (this.steps - 1), deviceType === 'mobile' ? 25 : 20);
             
             const totalWidth = buttonWidth * this.steps + spacing * (this.steps - 1);
             const startX = (CANVAS_WIDTH - totalWidth) / 2;
-            const startY = CANVAS_HEIGHT - 100; // Move buttons closer to bottom
+            const startY = CANVAS_HEIGHT - (deviceType === 'mobile' ? 120 : 100);
             
             this.stepButtons = Array.from({length: this.steps}, (_, i) => {
                 return new Button(
@@ -316,12 +313,11 @@ class NimGame {
             });
         }
 
-        // Adjust play again button position
         if (this.gameState === 'gameOver') {
-            const playAgainButtonWidth = 200;
+            const playAgainButtonWidth = deviceType === 'mobile' ? 240 : 200;
             this.playAgainButton = new Button(
                 (CANVAS_WIDTH - playAgainButtonWidth) / 2,
-                CANVAS_HEIGHT - 100,
+                CANVAS_HEIGHT - (deviceType === 'mobile' ? 120 : 100),
                 playAgainButtonWidth,
                 buttonHeight,
                 getText('playAgain'),
@@ -337,7 +333,7 @@ class NimGame {
 
         if (this.gameState === 'selectDevice') {
             ctx.fillStyle = COLORS.BLACK;
-            ctx.font = '32px Cairo';
+            ctx.font = deviceType === 'mobile' ? '36px Cairo' : '32px Cairo';
             ctx.textAlign = 'center';
             ctx.fillText('Select Device Type', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 4);
             this.deviceButtons.forEach(button => button.draw());
@@ -345,39 +341,32 @@ class NimGame {
         }
 
         if (this.gameState === 'selectLanguage') {
-            // Draw language selection with more spacing
             ctx.fillStyle = COLORS.BLACK;
-            ctx.font = '32px Cairo';
+            ctx.font = deviceType === 'mobile' ? '36px Cairo' : '32px Cairo';
             ctx.textAlign = 'center';
             ctx.fillText(translations.en.chooseLanguage + ' / ' + translations.ar.chooseLanguage, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 4);
             this.languageButtons.forEach(button => button.draw());
             return;
         }
 
-        // Draw game title with more space at top
         ctx.fillStyle = COLORS.BLACK;
-        ctx.font = '32px Cairo';
+        ctx.font = deviceType === 'mobile' ? '36px Cairo' : '32px Cairo';
         ctx.textAlign = 'center';
-        ctx.fillText(getText('title'), CANVAS_WIDTH / 2, 60);
+        ctx.fillText(getText('title'), CANVAS_WIDTH / 2, deviceType === 'mobile' ? 80 : 60);
 
-        // Draw game rules if needed with increased spacing
         if (this.showRules) {
-            const rulesStartY = 120; // Start rules higher up
-            const ruleSpacing = 40; // Reduced spacing between rules
-            ctx.font = '20px Cairo'; // Slightly smaller font for better readability
+            const rulesStartY = deviceType === 'mobile' ? 140 : 120;
+            const ruleSpacing = deviceType === 'mobile' ? 45 : 40;
             
-            // Draw rules title with larger font
-            ctx.font = '26px Cairo';
+            ctx.font = deviceType === 'mobile' ? '28px Cairo' : '26px Cairo';
             ctx.fillText(getText('gameRules'), CANVAS_WIDTH / 2, rulesStartY);
             
-            // Draw rules with normal font
-            ctx.font = '20px Cairo';
+            ctx.font = deviceType === 'mobile' ? '22px Cairo' : '20px Cairo';
             ctx.fillText(getText('rule1'), CANVAS_WIDTH / 2, rulesStartY + ruleSpacing);
             ctx.fillText(getText('rule2'), CANVAS_WIDTH / 2, rulesStartY + ruleSpacing * 2);
             ctx.fillText(getText('rule3'), CANVAS_WIDTH / 2, rulesStartY + ruleSpacing * 3);
             ctx.fillText(getText('rule4'), CANVAS_WIDTH / 2, rulesStartY + ruleSpacing * 4);
             
-            // Draw game parameters with slightly increased spacing
             ctx.fillText(`${getText('goal')}: ${this.goal}`, CANVAS_WIDTH / 2, rulesStartY + ruleSpacing * 5);
             ctx.fillText(`${getText('maxSteps')}: ${this.steps}`, CANVAS_WIDTH / 2, rulesStartY + ruleSpacing * 5.8);
         }
