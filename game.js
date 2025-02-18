@@ -14,18 +14,13 @@ const COLORS = {
 // Game settings
 let currentLanguage = 'ar';
 let currentDirection = 'rtl';
-let deviceType = 'pc'; // 'pc' or 'mobile'
+let deviceType = 'mobile'; // Default to mobile layout
 
 function setDeviceType(type) {
     deviceType = type;
-    // Adjust canvas size based on device type and window size
-    if (type === 'mobile') {
-        CANVAS_WIDTH = Math.min(window.innerWidth * 0.98, 800);
-        CANVAS_HEIGHT = Math.min(window.innerHeight * 0.95, 1000);
-    } else {
-        CANVAS_WIDTH = Math.min(window.innerWidth * 0.9, 1000);
-        CANVAS_HEIGHT = Math.min(window.innerHeight * 0.9, 800);
-    }
+    // Adjust canvas size based on window size (using mobile dimensions)
+    CANVAS_WIDTH = Math.min(window.innerWidth * 0.98, 800);
+    CANVAS_HEIGHT = Math.min(window.innerHeight * 0.95, 1000);
     
     // Update canvas size
     canvas.width = CANVAS_WIDTH;
@@ -95,9 +90,8 @@ class Button {
 // Game class
 class NimGame {
     constructor() {
-        this.gameState = 'selectDevice';
+        this.gameState = 'selectLanguage';
         this.resetGame();
-        this.createDeviceButtons();
         this.createLanguageButtons();
     }
 
@@ -142,17 +136,6 @@ class NimGame {
 
     handleClick(x, y) {
         if (this.isProcessing) return;
-        
-        if (this.gameState === 'selectDevice') {
-            this.deviceButtons.forEach((button, index) => {
-                if (button.isPointInside(x, y)) {
-                    setDeviceType(index === 0 ? 'pc' : 'mobile');
-                    this.gameState = 'selectLanguage';
-                    this.draw();
-                }
-            });
-            return;
-        }
         
         if (this.gameState === 'selectLanguage') {
             this.languageButtons.forEach((button, index) => {
@@ -329,15 +312,6 @@ class NimGame {
         // Clear canvas
         ctx.fillStyle = COLORS.WHITE;
         ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
-        if (this.gameState === 'selectDevice') {
-            ctx.fillStyle = COLORS.BLACK;
-            ctx.font = deviceType === 'mobile' ? '32px Cairo' : '36px Cairo';
-            ctx.textAlign = 'center';
-            ctx.fillText('Select Device Type', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 3);
-            this.deviceButtons.forEach(button => button.draw());
-            return;
-        }
 
         if (this.gameState === 'selectLanguage') {
             ctx.fillStyle = COLORS.BLACK;
