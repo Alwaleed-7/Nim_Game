@@ -114,12 +114,12 @@ class NimGame {
     }
 
     createLanguageButtons() {
-        const buttonWidth = 150;
-        const buttonHeight = 50;
-        const spacing = 50;
+        const buttonWidth = deviceType === 'mobile' ? 130 : 150;
+        const buttonHeight = deviceType === 'mobile' ? 45 : 50;
+        const spacing = deviceType === 'mobile' ? 20 : 50;
         const totalWidth = buttonWidth * 2 + spacing;
-        const startX = (CANVAS_WIDTH - totalWidth) / 2;
-        const y = CANVAS_HEIGHT / 2;
+        const startX = deviceType === 'mobile' ? 20 : (CANVAS_WIDTH - totalWidth) / 2;
+        const y = deviceType === 'mobile' ? CANVAS_HEIGHT / 2 + 20 : CANVAS_HEIGHT / 2;
 
         this.languageButtons = [
             new Button(startX, y, buttonWidth, buttonHeight, translations.ar.arabic, COLORS.BLUE),
@@ -342,12 +342,12 @@ class NimGame {
 
         if (this.gameState === 'selectLanguage') {
             ctx.fillStyle = COLORS.BLACK;
-            ctx.font = deviceType === 'mobile' ? '32px Cairo' : '36px Cairo';
+            ctx.font = deviceType === 'mobile' ? '24px Cairo' : '36px Cairo';
             ctx.textAlign = 'center';
             const langText = translations.en.chooseLanguage + '\n' + translations.ar.chooseLanguage;
             const lines = langText.split('\n');
             lines.forEach((line, index) => {
-                ctx.fillText(line, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 4 + (index * 40));
+                ctx.fillText(line, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 4 + (index * (deviceType === 'mobile' ? 32 : 40)));
             });
             this.languageButtons.forEach(button => button.draw());
             return;
