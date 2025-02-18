@@ -20,11 +20,11 @@ function setDeviceType(type) {
     deviceType = type;
     // Adjust canvas size based on device type and window size
     if (type === 'mobile') {
-        CANVAS_WIDTH = Math.min(window.innerWidth * 0.98, 600);
-        CANVAS_HEIGHT = Math.min(window.innerHeight * 0.9, 800);
+        CANVAS_WIDTH = Math.min(window.innerWidth * 0.98, 800);
+        CANVAS_HEIGHT = Math.min(window.innerHeight * 0.95, 1000);
     } else {
-        CANVAS_WIDTH = Math.min(window.innerWidth * 0.8, 800);
-        CANVAS_HEIGHT = Math.min(window.innerHeight * 0.8, 600);
+        CANVAS_WIDTH = Math.min(window.innerWidth * 0.9, 1000);
+        CANVAS_HEIGHT = Math.min(window.innerHeight * 0.9, 800);
     }
     
     // Update canvas size
@@ -333,30 +333,30 @@ class NimGame {
 
         if (this.gameState === 'selectDevice') {
             ctx.fillStyle = COLORS.BLACK;
-            ctx.font = deviceType === 'mobile' ? '36px Cairo' : '32px Cairo';
+            ctx.font = deviceType === 'mobile' ? '42px Cairo' : '36px Cairo';
             ctx.textAlign = 'center';
-            ctx.fillText('Select Device Type', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 4);
+            ctx.fillText('Select Device Type', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 3);
             this.deviceButtons.forEach(button => button.draw());
             return;
         }
 
         if (this.gameState === 'selectLanguage') {
             ctx.fillStyle = COLORS.BLACK;
-            ctx.font = deviceType === 'mobile' ? '36px Cairo' : '32px Cairo';
+            ctx.font = deviceType === 'mobile' ? '42px Cairo' : '36px Cairo';
             ctx.textAlign = 'center';
-            ctx.fillText(translations.en.chooseLanguage + ' / ' + translations.ar.chooseLanguage, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 4);
+            ctx.fillText(translations.en.chooseLanguage + ' / ' + translations.ar.chooseLanguage, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 3);
             this.languageButtons.forEach(button => button.draw());
             return;
         }
 
         ctx.fillStyle = COLORS.BLACK;
-        ctx.font = deviceType === 'mobile' ? '36px Cairo' : '32px Cairo';
+        ctx.font = deviceType === 'mobile' ? '42px Cairo' : '36px Cairo';
         ctx.textAlign = 'center';
-        ctx.fillText(getText('title'), CANVAS_WIDTH / 2, deviceType === 'mobile' ? 80 : 60);
+        ctx.fillText(getText('title'), CANVAS_WIDTH / 2, deviceType === 'mobile' ? 100 : 80);
 
         if (this.showRules) {
-            const rulesStartY = deviceType === 'mobile' ? 140 : 120;
-            const ruleSpacing = deviceType === 'mobile' ? 45 : 40;
+            const rulesStartY = deviceType === 'mobile' ? 180 : 150;
+            const ruleSpacing = deviceType === 'mobile' ? 55 : 45;
             
             ctx.font = deviceType === 'mobile' ? '28px Cairo' : '26px Cairo';
             ctx.fillText(getText('gameRules'), CANVAS_WIDTH / 2, rulesStartY);
