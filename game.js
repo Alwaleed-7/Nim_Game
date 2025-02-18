@@ -127,10 +127,10 @@ class NimGame {
                 this.animationState = null;
                 if (this.currentPosition > this.goal) {
                     this.gameState = 'gameOver';
-                    this.winner = 'player';
+                    this.winner = 'computer';
                 } else if (this.currentPosition === this.goal) {
                     this.gameState = 'gameOver';
-                    this.winner = 'computer';
+                    this.winner = 'player';
                 } else {
                     this.playerTurn = true;
                 }
@@ -147,11 +147,12 @@ class NimGame {
                 ctx.fillText("1. في كل دور، يمكنك التحرك خطوات محددة نحو الهدف", CANVAS_WIDTH-100, 140);
                 ctx.fillText("2. الفائز هو من يصل إلى الهدف أولاً", CANVAS_WIDTH-100, 180);
                 ctx.fillText("3. اختر خطواتك بحكمة للفوز على الكمبيوتر", CANVAS_WIDTH-100, 220);
+                ctx.fillText("4. إذا تجاوزت الرقم المستهدف، ستخسر اللعبة", CANVAS_WIDTH-100, 260);
                 
                 // Add goal and steps information
                 ctx.fillStyle = COLORS.BLUE;
-                ctx.fillText(`${this.goal} :الهدف المطلوب الوصول إليه`, CANVAS_WIDTH-100, 260);
-                ctx.fillText(`${this.steps} :الحد الأقصى للخطوات المسموحة`, CANVAS_WIDTH-100, 300);
+                ctx.fillText(`${this.goal} :الهدف المطلوب الوصول إليه`, CANVAS_WIDTH-100, 300);
+                ctx.fillText(`${this.steps} :الحد الأقصى للخطوات المسموحة`, CANVAS_WIDTH-100, 340);
                 
                 ctx.fillStyle = COLORS.BLACK;
                 ctx.font = '32px Cairo';
