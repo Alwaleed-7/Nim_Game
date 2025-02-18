@@ -16,6 +16,7 @@ A modern implementation of the classic Nim game built with HTML5 Canvas and Java
    - You must make a move when it's your turn
 4. Strategy is key - plan your moves carefully!
 5. The player who exactly reaches the goal number wins the game
+6. If a player exceeds the goal number in their final move, they lose the game
 
 ## ✨ Features
 

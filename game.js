@@ -112,7 +112,10 @@ class NimGame {
             if (this.animationState === 'player') {
                 this.currentPosition += this.lastMoveAmount;
                 this.animationState = null;
-                if (this.currentPosition >= this.goal) {
+                if (this.currentPosition > this.goal) {
+                    this.gameState = 'gameOver';
+                    this.winner = 'computer';
+                } else if (this.currentPosition === this.goal) {
                     this.gameState = 'gameOver';
                     this.winner = 'player';
                 } else {
@@ -122,7 +125,10 @@ class NimGame {
             } else if (this.animationState === 'bot') {
                 this.currentPosition += this.lastMoveAmount;
                 this.animationState = null;
-                if (this.currentPosition >= this.goal) {
+                if (this.currentPosition > this.goal) {
+                    this.gameState = 'gameOver';
+                    this.winner = 'player';
+                } else if (this.currentPosition === this.goal) {
                     this.gameState = 'gameOver';
                     this.winner = 'computer';
                 } else {
