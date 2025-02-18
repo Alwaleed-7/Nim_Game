@@ -20,11 +20,11 @@ function setDeviceType(type) {
     deviceType = type;
     // Adjust canvas size based on device type and window size
     if (type === 'mobile') {
-        CANVAS_WIDTH = Math.min(window.innerWidth * 0.98, 800);
-        CANVAS_HEIGHT = Math.min(window.innerHeight * 0.95, 1000);
+        CANVAS_WIDTH = Math.min(window.innerWidth * 0.98, 1080);
+        CANVAS_HEIGHT = Math.min(window.innerHeight * 0.95, 1920);
     } else {
-        CANVAS_WIDTH = Math.min(window.innerWidth * 0.9, 1000);
-        CANVAS_HEIGHT = Math.min(window.innerHeight * 0.9, 800);
+        CANVAS_WIDTH = Math.min(window.innerWidth * 0.9, 1920);
+        CANVAS_HEIGHT = Math.min(window.innerHeight * 0.9, 1080);
     }
     
     // Update canvas size
@@ -332,19 +332,49 @@ class NimGame {
         ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
         if (this.gameState === 'selectDevice') {
+            // Adjust title position and size
             ctx.fillStyle = COLORS.BLACK;
-            ctx.font = deviceType === 'mobile' ? '42px Cairo' : '36px Cairo';
+            ctx.font = deviceType === 'mobile' ? '36px Cairo' : '32px Cairo';
             ctx.textAlign = 'center';
-            ctx.fillText('Select Device Type', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 3);
+            const titleY = deviceType === 'mobile' ? CANVAS_HEIGHT * 0.25 : CANVAS_HEIGHT * 0.3;
+            ctx.fillText('Select Device Type', CANVAS_WIDTH / 2, titleY);
+
+            // Adjust button positions
+            const buttonWidth = deviceType === 'mobile' ? 180 : 150;
+            const buttonHeight = deviceType === 'mobile' ? 60 : 50;
+            const spacing = deviceType === 'mobile' ? 30 : 20;
+            const totalWidth = buttonWidth * 2 + spacing;
+            const startX = (CANVAS_WIDTH - totalWidth) / 2;
+            const startY = CANVAS_HEIGHT * 0.45;
+
+            this.deviceButtons = [
+                new Button(startX, startY, buttonWidth, buttonHeight, 'PC', COLORS.BLUE),
+                new Button(startX + buttonWidth + spacing, startY, buttonWidth, buttonHeight, 'Mobile', COLORS.GREEN)
+            ];
             this.deviceButtons.forEach(button => button.draw());
             return;
         }
 
         if (this.gameState === 'selectLanguage') {
+            // Adjust title position and size
             ctx.fillStyle = COLORS.BLACK;
-            ctx.font = deviceType === 'mobile' ? '42px Cairo' : '36px Cairo';
+            ctx.font = deviceType === 'mobile' ? '36px Cairo' : '32px Cairo';
             ctx.textAlign = 'center';
-            ctx.fillText(translations.en.chooseLanguage + ' / ' + translations.ar.chooseLanguage, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 3);
+            const titleY = deviceType === 'mobile' ? CANVAS_HEIGHT * 0.25 : CANVAS_HEIGHT * 0.3;
+            ctx.fillText(translations.en.chooseLanguage + ' / ' + translations.ar.chooseLanguage, CANVAS_WIDTH / 2, titleY);
+
+            // Adjust button positions
+            const buttonWidth = deviceType === 'mobile' ? 180 : 150;
+            const buttonHeight = deviceType === 'mobile' ? 60 : 50;
+            const spacing = deviceType === 'mobile' ? 30 : 20;
+            const totalWidth = buttonWidth * 2 + spacing;
+            const startX = (CANVAS_WIDTH - totalWidth) / 2;
+            const startY = CANVAS_HEIGHT * 0.45;
+
+            this.languageButtons = [
+                new Button(startX, startY, buttonWidth, buttonHeight, translations.ar.arabic, COLORS.BLUE),
+                new Button(startX + buttonWidth + spacing, startY, buttonWidth, buttonHeight, translations.en.english, COLORS.RED)
+            ];
             this.languageButtons.forEach(button => button.draw());
             return;
         }
