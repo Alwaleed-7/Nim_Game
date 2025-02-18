@@ -1,6 +1,6 @@
 // Game constants
-let CANVAS_WIDTH = 800;
-let CANVAS_HEIGHT = 600;
+let CANVAS_WIDTH = Math.min(window.innerWidth * 0.98, 800);
+let CANVAS_HEIGHT = Math.min(window.innerHeight * 0.95, 1000);
 const COLORS = {
     GRAY: '#808080',
     WHITE: '#FFFFFF',
@@ -461,7 +461,12 @@ const game = new NimGame();
 
 // Handle window resize
 window.addEventListener('resize', () => {
-    setDeviceType(deviceType);
+    CANVAS_WIDTH = Math.min(window.innerWidth * 0.98, 800);
+    CANVAS_HEIGHT = Math.min(window.innerHeight * 0.95, 1000);
+    canvas.width = CANVAS_WIDTH;
+    canvas.height = CANVAS_HEIGHT;
+    game.createLanguageButtons();
+    game.createButtons();
 });
 
 // Event listeners
