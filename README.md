@@ -8,14 +8,14 @@ A modern implementation of the classic Nim game built with HTML5 Canvas and Java
 
 ## 📖 Game Rules
 
-1. The game begins with multiple rows of objects
-2. Two players take turns removing objects
+1. The game starts with a randomly generated goal number (between 40-70)
+2. Players take turns making moves towards the goal number
 3. On each turn:
-   - Choose any single row
-   - Remove one or more objects from that row
-   - You must remove at least one object
+   - Choose a number between 1 and the maximum allowed steps (3-7 steps, randomly determined at game start)
+   - The chosen number is added to the current position
+   - You must make a move when it's your turn
 4. Strategy is key - plan your moves carefully!
-5. The player who removes the last object wins the game
+5. The player who exactly reaches the goal number wins the game
 
 ## ✨ Features
 
