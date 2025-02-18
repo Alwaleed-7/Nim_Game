@@ -114,11 +114,11 @@ class NimGame {
     }
 
     createLanguageButtons() {
-        const buttonWidth = deviceType === 'mobile' ? 130 : 150;
+        const buttonWidth = deviceType === 'mobile' ? 120 : 150;
         const buttonHeight = deviceType === 'mobile' ? 45 : 50;
-        const spacing = deviceType === 'mobile' ? 20 : 50;
+        const spacing = deviceType === 'mobile' ? 10 : 50;
         const totalWidth = buttonWidth * 2 + spacing;
-        const startX = deviceType === 'mobile' ? 20 : (CANVAS_WIDTH - totalWidth) / 2;
+        const startX = (CANVAS_WIDTH - totalWidth) / 2;
         const y = deviceType === 'mobile' ? CANVAS_HEIGHT / 2 + 20 : CANVAS_HEIGHT / 2;
 
         this.languageButtons = [
@@ -273,10 +273,10 @@ class NimGame {
     }
 
     createButtons() {
-        const buttonHeight = deviceType === 'mobile' ? 60 : 50; // Larger buttons for mobile
-        const minButtonWidth = deviceType === 'mobile' ? 100 : 80;
-        const maxButtonWidth = deviceType === 'mobile' ? 180 : 150;
-        const minSpacing = deviceType === 'mobile' ? 15 : 10;
+        const buttonHeight = deviceType === 'mobile' ? 50 : 50;
+        const minButtonWidth = deviceType === 'mobile' ? 60 : 80;
+        const maxButtonWidth = deviceType === 'mobile' ? 100 : 150;
+        const minSpacing = deviceType === 'mobile' ? 10 : 10;
 
         if (this.gameState === 'chooseTurn') {
             const buttonWidth = deviceType === 'mobile' ? 180 : 150;
