@@ -1,7 +1,8 @@
 // Game constants
-const CANVAS_WIDTH = 800;
-const CANVAS_HEIGHT = 600;
+let CANVAS_WIDTH = 800;
+let CANVAS_HEIGHT = 600;
 const COLORS = {
+    GRAY: '#808080',
     WHITE: '#FFFFFF',
     BLACK: '#000000',
     GREEN: '#228B22',
@@ -10,9 +11,32 @@ const COLORS = {
     HOVER: '#4CAF50'
 };
 
-// Language settings
+// Game settings
 let currentLanguage = 'ar';
 let currentDirection = 'rtl';
+let deviceType = 'pc'; // 'pc' or 'mobile'
+
+function setDeviceType(type) {
+    deviceType = type;
+    // Adjust canvas size based on device type and window size
+    if (type === 'mobile') {
+        CANVAS_WIDTH = Math.min(window.innerWidth * 0.95, 600);
+        CANVAS_HEIGHT = Math.min(window.innerHeight * 0.95, 800);
+    } else {
+        CANVAS_WIDTH = Math.min(window.innerWidth * 0.8, 800);
+        CANVAS_HEIGHT = Math.min(window.innerHeight * 0.8, 600);
+    }
+    
+    // Update canvas size
+    canvas.width = CANVAS_WIDTH;
+    canvas.height = CANVAS_HEIGHT;
+    
+    // Reset game with new dimensions
+    if (game) {
+        game.resetGame();
+        game.draw();
+    }
+}
 
 function setLanguage(lang) {
     currentLanguage = lang;
@@ -71,8 +95,9 @@ class Button {
 // Game class
 class NimGame {
     constructor() {
-        this.gameState = 'selectLanguage';
+        this.gameState = 'selectDevice';
         this.resetGame();
+        this.createDeviceButtons();
         this.createLanguageButtons();
     }
 
@@ -102,8 +127,33 @@ class NimGame {
         ];
     }
 
+    createDeviceButtons() {
+        const buttonWidth = 150;
+        const buttonHeight = 50;
+        const spacing = 50;
+        const totalWidth = buttonWidth * 2 + spacing;
+        const startX = (CANVAS_WIDTH - totalWidth) / 2;
+        const y = CANVAS_HEIGHT / 2;
+
+        this.deviceButtons = [
+            new Button(startX, y, buttonWidth, buttonHeight, 'PC', COLORS.BLUE),
+            new Button(startX + buttonWidth + spacing, y, buttonWidth, buttonHeight, 'Mobile', COLORS.GREEN)
+        ];
+    }
+
     handleClick(x, y) {
         if (this.isProcessing) return;
+        
+        if (this.gameState === 'selectDevice') {
+            this.deviceButtons.forEach((button, index) => {
+                if (button.isPointInside(x, y)) {
+                    setDeviceType(index === 0 ? 'pc' : 'mobile');
+                    this.gameState = 'selectLanguage';
+                    this.draw();
+                }
+            });
+            return;
+        }
         
         if (this.gameState === 'selectLanguage') {
             this.languageButtons.forEach((button, index) => {
@@ -285,6 +335,15 @@ class NimGame {
         ctx.fillStyle = COLORS.WHITE;
         ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
+        if (this.gameState === 'selectDevice') {
+            ctx.fillStyle = COLORS.BLACK;
+            ctx.font = '32px Cairo';
+            ctx.textAlign = 'center';
+            ctx.fillText('Select Device Type', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 4);
+            this.deviceButtons.forEach(button => button.draw());
+            return;
+        }
+
         if (this.gameState === 'selectLanguage') {
             // Draw language selection with more spacing
             ctx.fillStyle = COLORS.BLACK;
@@ -385,6 +444,11 @@ class NimGame {
 
 // Game initialization
 const game = new NimGame();
+
+// Handle window resize
+window.addEventListener('resize', () => {
+    setDeviceType(deviceType);
+});
 
 // Event listeners
 canvas.addEventListener('click', (e) => {
