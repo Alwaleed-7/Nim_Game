@@ -18,13 +18,13 @@ let deviceType = 'pc'; // 'pc' or 'mobile'
 
 function setDeviceType(type) {
     deviceType = type;
-    // Set resolution based on device type
+    // Adjust canvas size based on device type and window size
     if (type === 'mobile') {
-        CANVAS_WIDTH = Math.min(window.innerWidth * 0.98, 960);
-        CANVAS_HEIGHT = Math.min(window.innerHeight * 0.95, 1440);
+        CANVAS_WIDTH = Math.min(window.innerWidth * 0.98, 800);
+        CANVAS_HEIGHT = Math.min(window.innerHeight * 0.95, 1000);
     } else {
-        CANVAS_WIDTH = Math.min(window.innerWidth * 0.9, 1920);
-        CANVAS_HEIGHT = Math.min(window.innerHeight * 0.9, 1080);
+        CANVAS_WIDTH = Math.min(window.innerWidth * 0.9, 1000);
+        CANVAS_HEIGHT = Math.min(window.innerHeight * 0.9, 800);
     }
     
     // Update canvas size
@@ -333,18 +333,22 @@ class NimGame {
 
         if (this.gameState === 'selectDevice') {
             ctx.fillStyle = COLORS.BLACK;
-            ctx.font = deviceType === 'mobile' ? '48px Cairo' : '42px Cairo';
+            ctx.font = deviceType === 'mobile' ? '36px Cairo' : '36px Cairo';
             ctx.textAlign = 'center';
-            ctx.fillText('Select Device Type', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 3);
+            ctx.fillText('Select Device Type', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 4);
             this.deviceButtons.forEach(button => button.draw());
             return;
         }
 
         if (this.gameState === 'selectLanguage') {
             ctx.fillStyle = COLORS.BLACK;
-            ctx.font = deviceType === 'mobile' ? '48px Cairo' : '42px Cairo';
+            ctx.font = deviceType === 'mobile' ? '32px Cairo' : '36px Cairo';
             ctx.textAlign = 'center';
-            ctx.fillText(translations.en.chooseLanguage + ' / ' + translations.ar.chooseLanguage, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 3);
+            const langText = translations.en.chooseLanguage + '\n' + translations.ar.chooseLanguage;
+            const lines = langText.split('\n');
+            lines.forEach((line, index) => {
+                ctx.fillText(line, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 4 + (index * 40));
+            });
             this.languageButtons.forEach(button => button.draw());
             return;
         }
@@ -355,20 +359,42 @@ class NimGame {
         ctx.fillText(getText('title'), CANVAS_WIDTH / 2, deviceType === 'mobile' ? 100 : 80);
 
         if (this.showRules) {
-            const rulesStartY = deviceType === 'mobile' ? 180 : 150;
-            const ruleSpacing = deviceType === 'mobile' ? 55 : 45;
+            const rulesStartY = deviceType === 'mobile' ? 160 : 150;
+            const ruleSpacing = deviceType === 'mobile' ? 45 : 45;
             
-            ctx.font = deviceType === 'mobile' ? '28px Cairo' : '26px Cairo';
+            ctx.font = deviceType === 'mobile' ? '24px Cairo' : '26px Cairo';
             ctx.fillText(getText('gameRules'), CANVAS_WIDTH / 2, rulesStartY);
             
-            ctx.font = deviceType === 'mobile' ? '22px Cairo' : '20px Cairo';
-            ctx.fillText(getText('rule1'), CANVAS_WIDTH / 2, rulesStartY + ruleSpacing);
-            ctx.fillText(getText('rule2'), CANVAS_WIDTH / 2, rulesStartY + ruleSpacing * 2);
-            ctx.fillText(getText('rule3'), CANVAS_WIDTH / 2, rulesStartY + ruleSpacing * 3);
-            ctx.fillText(getText('rule4'), CANVAS_WIDTH / 2, rulesStartY + ruleSpacing * 4);
+            ctx.font = deviceType === 'mobile' ? '20px Cairo' : '20px Cairo';
+            const wrapText = (text, y) => {
+                const maxWidth = CANVAS_WIDTH * 0.9;
+                const words = text.split(' ');
+                let line = '';
+                let currentY = y;
+                
+                words.forEach(word => {
+                    const testLine = line + word + ' ';
+                    const metrics = ctx.measureText(testLine);
+                    if (metrics.width > maxWidth && line !== '') {
+                        ctx.fillText(line, CANVAS_WIDTH / 2, currentY);
+                        line = word + ' ';
+                        currentY += ruleSpacing * 0.7;
+                    } else {
+                        line = testLine;
+                    }
+                });
+                ctx.fillText(line, CANVAS_WIDTH / 2, currentY);
+                return currentY;
+            };
             
-            ctx.fillText(`${getText('goal')}: ${this.goal}`, CANVAS_WIDTH / 2, rulesStartY + ruleSpacing * 5);
-            ctx.fillText(`${getText('maxSteps')}: ${this.steps}`, CANVAS_WIDTH / 2, rulesStartY + ruleSpacing * 5.8);
+            let currentY = rulesStartY + ruleSpacing;
+            currentY = wrapText(getText('rule1'), currentY) + ruleSpacing;
+            currentY = wrapText(getText('rule2'), currentY) + ruleSpacing;
+            currentY = wrapText(getText('rule3'), currentY) + ruleSpacing;
+            currentY = wrapText(getText('rule4'), currentY) + ruleSpacing;
+            
+            ctx.fillText(`${getText('goal')}: ${this.goal}`, CANVAS_WIDTH / 2, currentY + ruleSpacing * 0.5);
+            ctx.fillText(`${getText('maxSteps')}: ${this.steps}`, CANVAS_WIDTH / 2, currentY + ruleSpacing);
         }
 
         if (this.gameState === 'chooseTurn') {
