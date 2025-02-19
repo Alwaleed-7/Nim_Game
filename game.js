@@ -207,6 +207,11 @@ class NimGame {
                 }
             });
             return;
+        } else if (this.gameState === 'showInstructions' && this.readyButton && this.readyButton.isPointInside(x, y)) {
+            this.gameState = 'playing';
+            this.showRules = false;
+            this.createButtons();
+            return;
         }
         if (this.gameState === 'chooseTurn') {
             this.turnButtons.forEach((button, index) => {
