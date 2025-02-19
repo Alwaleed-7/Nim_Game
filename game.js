@@ -5,11 +5,20 @@ const COLORS = {
     GRAY: '#808080',
     WHITE: '#FFFFFF',
     BLACK: '#000000',
-    GREEN: '#228B22',
-    BLUE: '#0000FF',
-    RED: '#FF0000',
-    HOVER: '#4CAF50'
+    GREEN: '#4CAF50',
+    BLUE: '#2196F3',
+    RED: '#F44336',
+    HOVER: '#4CAF50',
+    PROGRESS_BG: '#E0E0E0',
+    PROGRESS_FILL: '#4CAF50',
+    TEXT_PRIMARY: '#212121',
+    TEXT_SECONDARY: '#757575'
 };
+
+// Helper function to adjust color brightness
+function adjustColor(color, amount) {
+    return '#' + color.replace(/^#/, '').replace(/../g, color => ('0'+Math.min(255, Math.max(0, parseInt(color, 16) + amount)).toString(16)).substr(-2));
+}
 
 // Game settings
 let currentLanguage = 'ar';
@@ -74,13 +83,56 @@ class Button {
     }
 
     draw() {
-        ctx.fillStyle = this.isHovered ? COLORS.HOVER : this.color;
-        ctx.fillRect(this.x, this.y, this.width, this.height);
+        // Draw shadow
+        ctx.save();
+        ctx.shadowColor = 'rgba(0,0,0,0.3)';
+        ctx.shadowBlur = 10;
+        ctx.shadowOffsetY = 3;
+
+        // Draw button background with rounded corners
+        ctx.beginPath();
+        const radius = 8;
+        ctx.moveTo(this.x + radius, this.y);
+        ctx.lineTo(this.x + this.width - radius, this.y);
+        ctx.quadraticCurveTo(this.x + this.width, this.y, this.x + this.width, this.y + radius);
+        ctx.lineTo(this.x + this.width, this.y + this.height - radius);
+        ctx.quadraticCurveTo(this.x + this.width, this.y + this.height, this.x + this.width - radius, this.y + this.height);
+        ctx.lineTo(this.x + radius, this.y + this.height);
+        ctx.quadraticCurveTo(this.x, this.y + this.height, this.x, this.y + this.height - radius);
+        ctx.lineTo(this.x, this.y + radius);
+        ctx.quadraticCurveTo(this.x, this.y, this.x + radius, this.y);
+        ctx.closePath();
+
+        // Create gradient
+        const gradient = ctx.createLinearGradient(this.x, this.y, this.x, this.y + this.height);
+        if (this.isHovered) {
+            gradient.addColorStop(0, '#4CAF50');
+            gradient.addColorStop(1, '#388E3C');
+        } else {
+            gradient.addColorStop(0, this.color);
+            gradient.addColorStop(1, adjustColor(this.color, -20));
+        }
+        
+        ctx.fillStyle = gradient;
+        ctx.fill();
+
+        // Add subtle border
+        ctx.strokeStyle = adjustColor(this.isHovered ? '#4CAF50' : this.color, -30);
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        ctx.restore();
+
+        // Draw text with shadow
+        ctx.save();
+        ctx.shadowColor = 'rgba(0,0,0,0.3)';
+        ctx.shadowBlur = 2;
+        ctx.shadowOffsetY = 1;
         ctx.fillStyle = COLORS.WHITE;
-        ctx.font = '24px Cairo';
+        ctx.font = 'bold 24px Cairo';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(this.text, this.x + this.width/2, this.y + this.height/2);
+        ctx.restore();
     }
 
     isPointInside(x, y) {
@@ -93,6 +145,8 @@ class Button {
 class NimGame {
     constructor() {
         this.gameState = 'selectLanguage';
+        this.lastClickTime = 0;
+        this.lastHoverTime = 0;
         this.resetGame();
         this.createLanguageButtons();
         this.createModeButtons();
@@ -145,7 +199,18 @@ class NimGame {
     }
 
     handleClick(x, y) {
-        if (this.isProcessing) return;
+        // Prevent any clicks during processing or too rapid clicks
+        if (this.isProcessing) {
+            return;
+        }
+        
+        // Implement debounce for clicks
+        const now = Date.now();
+        if (!this.lastClickTime || now - this.lastClickTime < 300) {
+            this.lastClickTime = now;
+            return;
+        }
+        this.lastClickTime = now;
         
         if (this.gameState === 'selectLanguage') {
             this.languageButtons.forEach((button, index) => {
@@ -189,30 +254,35 @@ class NimGame {
             return;
         }
 
-        if (this.gameState === 'showInstructions' && this.turnButtons) {
-            this.turnButtons.forEach((button, index) => {
-                if (button.isPointInside(x, y)) {
-                    this.playerTurn = index === 0;
-                    this.gameState = 'playing';
-                    this.showRules = false;
-                    this.createButtons();
-                    if (!this.playerTurn) {
-                        this.isProcessing = true;
-                        setTimeout(() => {
-                            this.makeBotMove();
-                            this.playerTurn = true;
-                            this.isProcessing = false;
-                        }, 1000);
+        if (this.gameState === 'showInstructions') {
+            if (gameMode === 'ai' && this.turnButtons) {
+                this.turnButtons.forEach((button, index) => {
+                    if (button.isPointInside(x, y)) {
+                        this.playerTurn = index === 0;
+                        this.gameState = 'playing';
+                        this.showRules = false;
+                        this.createButtons();
+                        if (!this.playerTurn) {
+                            this.isProcessing = true;
+                            setTimeout(() => {
+                                this.makeBotMove();
+                                this.playerTurn = true;
+                                this.isProcessing = false;
+                            }, 1000);
+                        }
                     }
-                }
-            });
-            return;
-        } else if (this.gameState === 'showInstructions' && this.readyButton && this.readyButton.isPointInside(x, y)) {
-            this.gameState = 'playing';
-            this.showRules = false;
-            this.createButtons();
+                });
+            } else if (gameMode === '2player' && this.readyButton && this.readyButton.isPointInside(x, y)) {
+                this.gameState = 'playing';
+                this.showRules = false;
+                this.currentPlayer = 1;
+                this.createButtons();
+                this.readyButton = null;
+                this.draw();
+            }
             return;
         }
+
         if (this.gameState === 'chooseTurn') {
             this.turnButtons.forEach((button, index) => {
                 if (button.isPointInside(x, y)) {
@@ -265,12 +335,24 @@ class NimGame {
 
     makeMove(steps) {
         this.currentPosition += steps;
-        if (this.currentPosition === this.goal) {
-            this.winner = this.playerTurn ? 'player' : 'computer';
-            this.gameState = 'gameOver';
-            this.createButtons();
-        } else if (this.currentPosition > this.goal) {
-            this.winner = gameMode === 'ai' ? (this.playerTurn ? 'computer' : 'player') : (this.currentPlayer === 1 ? '2' : '1');
+        if (this.currentPosition >= this.goal) {
+            if (gameMode === 'ai') {
+                if (this.currentPosition > this.goal) {
+                    // If player exceeds goal, they lose
+                    this.winner = this.playerTurn ? 'computer' : 'player';
+                } else {
+                    // If player reaches goal exactly, they win
+                    this.winner = this.playerTurn ? 'player' : 'computer';
+                }
+            } else {
+                if (this.currentPosition > this.goal) {
+                    // If current player exceeds the goal, the other player wins
+                    this.winner = this.currentPlayer === 1 ? 2 : 1;
+                } else {
+                    // If current player reaches the goal exactly, they win
+                    this.winner = this.currentPlayer;
+                }
+            }
             this.gameState = 'gameOver';
             this.createButtons();
         }
@@ -353,16 +435,27 @@ class NimGame {
     }
 
     handleMouseMove(x, y) {
-        const buttons = [
-            ...(this.gameState === 'selectLanguage' ? this.languageButtons : []),
-            ...(this.gameState === 'chooseTurn' ? this.turnButtons : []),
-            ...(this.gameState === 'playing' ? this.stepButtons : []),
-            this.gameState === 'gameOver' ? this.playAgainButton : null
-        ].filter(Boolean);
+        if (!this.lastHoverTime || Date.now() - this.lastHoverTime >= 50) {
+            this.lastHoverTime = Date.now();
+            const buttons = [
+                ...(this.gameState === 'selectLanguage' ? this.languageButtons : []),
+                ...(this.gameState === 'selectMode' ? this.modeButtons : []),
+                ...(this.gameState === 'selectDifficulty' ? this.difficultyButtons : []),
+                ...(this.gameState === 'chooseTurn' ? this.turnButtons : []),
+                ...(this.gameState === 'playing' ? this.stepButtons : []),
+                ...(this.gameState === 'showInstructions' && gameMode === 'ai' ? this.turnButtons : []),
+                ...(this.gameState === 'showInstructions' && gameMode === '2player' && this.readyButton ? [this.readyButton] : []),
+                this.gameState === 'gameOver' ? this.playAgainButton : null
+            ].filter(Boolean);
 
-        buttons.forEach(button => {
-            button.isHovered = button.isPointInside(x, y);
-        });
+            buttons.forEach(button => {
+                const wasHovered = button.isHovered;
+                button.isHovered = button.isPointInside(x, y);
+                if (wasHovered !== button.isHovered) {
+                    this.draw(); // Redraw only when hover state changes
+                }
+            });
+        }
     }
 
     createButtons() {
@@ -385,9 +478,10 @@ class NimGame {
                     new Button(startX + buttonWidth + spacing, startY, buttonWidth, buttonHeight, getText('second'), COLORS.RED)
                 ];
             } else {
+                const buttonWidth = deviceType === 'mobile' ? 180 : 150;
                 this.readyButton = new Button(
-                    startX,
-                    startY,
+                    (CANVAS_WIDTH - buttonWidth) / 2,
+                    CANVAS_HEIGHT * 0.4,
                     buttonWidth,
                     buttonHeight,
                     getText('ready'),
@@ -446,11 +540,16 @@ class NimGame {
 
     draw() {
         // Clear canvas
+        ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
         ctx.fillStyle = COLORS.WHITE;
         ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
         if (this.gameState === 'selectLanguage') {
-            ctx.fillStyle = COLORS.BLACK;
+            ctx.save();
+            ctx.shadowColor = 'rgba(0,0,0,0.2)';
+            ctx.shadowBlur = 4;
+            ctx.shadowOffsetY = 2;
+            ctx.fillStyle = COLORS.TEXT_PRIMARY;
             ctx.font = deviceType === 'mobile' ? '24px Cairo' : '32px Cairo';
             ctx.textAlign = 'center';
             const langText = translations.en.chooseLanguage + '\n' + translations.ar.chooseLanguage;
@@ -458,6 +557,7 @@ class NimGame {
             lines.forEach((line, index) => {
                 ctx.fillText(line, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 5 + (index * (deviceType === 'mobile' ? 40 : 50)));
             });
+            ctx.restore();
             this.languageButtons.forEach(button => button.draw());
             return;
         }
