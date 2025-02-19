@@ -348,7 +348,7 @@ class NimGame {
                 if (this.currentPosition > this.goal) {
                     // If current player exceeds the goal, the other player wins
                     this.winner = this.currentPlayer === 1 ? 2 : 1;
-                } else {
+                } else if (this.currentPosition === this.goal) {
                     // If current player reaches the goal exactly, they win
                     this.winner = this.currentPlayer;
                 }
