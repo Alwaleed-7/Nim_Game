@@ -243,7 +243,7 @@ class NimGame {
             this.gameState = 'gameOver';
             this.createButtons();
         } else if (this.currentPosition > this.goal) {
-            this.winner = this.playerTurn ? 'computer' : 'player';
+            this.winner = gameMode === 'ai' ? (this.playerTurn ? 'computer' : 'player') : (this.currentPlayer === 1 ? '2' : '1');
             this.gameState = 'gameOver';
             this.createButtons();
         }
@@ -493,7 +493,7 @@ class NimGame {
             ctx.fillText(`${getText('currentPosition')}: ${this.currentPosition}`, CANVAS_WIDTH / 2, infoStartY + infoSpacing);
             ctx.fillText(`${getText('maxSteps')}: ${this.steps}`, CANVAS_WIDTH / 2, infoStartY + infoSpacing * 2);
 
-            if (this.botLastMove !== null) {
+            if (gameMode === 'ai' && this.botLastMove !== null) {
                 ctx.fillText(
                     getText('computerLastMove', {steps: this.botLastMove}),
                     CANVAS_WIDTH / 2,
