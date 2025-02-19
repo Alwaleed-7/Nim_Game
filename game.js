@@ -15,6 +15,7 @@ const COLORS = {
 let currentLanguage = 'ar';
 let currentDirection = 'rtl';
 let deviceType = 'mobile'; // Default to mobile layout
+let gameMode = 'ai'; // 'ai' or '2player'
 
 function setDeviceType(type) {
     deviceType = type;
@@ -93,6 +94,7 @@ class NimGame {
         this.gameState = 'selectLanguage';
         this.resetGame();
         this.createLanguageButtons();
+        this.createModeButtons();
     }
 
     resetGame() {
@@ -104,6 +106,7 @@ class NimGame {
         this.botLastMove = null;
         this.showRules = true;
         this.isProcessing = false;
+        this.currentPlayer = 1; // For 2-player mode
         this.createButtons();
     }
 
@@ -120,17 +123,16 @@ class NimGame {
         ];
     }
 
-    createDeviceButtons() {
-        const buttonWidth = 150;
-        const buttonHeight = 50;
-        const spacing = 50;
-        const totalWidth = buttonWidth * 2 + spacing;
-        const startX = (CANVAS_WIDTH - totalWidth) / 2;
-        const y = CANVAS_HEIGHT / 2;
+    createModeButtons() {
+        const buttonWidth = deviceType === 'mobile' ? 180 : 200;
+        const buttonHeight = deviceType === 'mobile' ? 45 : 50;
+        const spacing = deviceType === 'mobile' ? 20 : 30;
+        const startX = (CANVAS_WIDTH - buttonWidth) / 2;
+        const startY = deviceType === 'mobile' ? CANVAS_HEIGHT / 3 : CANVAS_HEIGHT / 3;
 
-        this.deviceButtons = [
-            new Button(startX, y, buttonWidth, buttonHeight, 'PC', COLORS.BLUE),
-            new Button(startX + buttonWidth + spacing, y, buttonWidth, buttonHeight, 'Mobile', COLORS.GREEN)
+        this.modeButtons = [
+            new Button(startX, startY, buttonWidth, buttonHeight, getText('vsComputer'), COLORS.BLUE),
+            new Button(startX, startY + buttonHeight + spacing, buttonWidth, buttonHeight, getText('vsPlayer'), COLORS.GREEN)
         ];
     }
 
@@ -141,9 +143,45 @@ class NimGame {
             this.languageButtons.forEach((button, index) => {
                 if (button.isPointInside(x, y)) {
                     setLanguage(index === 0 ? 'ar' : 'en');
-                    this.gameState = 'chooseTurn';
+                    this.gameState = 'selectMode';
+                    this.createModeButtons();
+                }
+            });
+            return;
+        }
+
+        if (this.gameState === 'selectMode') {
+            this.modeButtons.forEach((button, index) => {
+                if (button.isPointInside(x, y)) {
+                    gameMode = index === 0 ? 'ai' : '2player';
+                    if (gameMode === '2player') {
+                        this.gameState = 'showInstructions';
+                        this.showRules = true;
+                    } else {
+                        this.gameState = 'showInstructions';
+                        this.showRules = true;
+                    }
                     this.resetGame();
                     this.createButtons();
+                }
+            });
+            return;
+        }
+        if (this.gameState === 'showInstructions' && this.turnButtons) {
+            this.turnButtons.forEach((button, index) => {
+                if (button.isPointInside(x, y)) {
+                    this.playerTurn = index === 0;
+                    this.gameState = 'playing';
+                    this.showRules = false;
+                    this.createButtons();
+                    if (!this.playerTurn) {
+                        this.isProcessing = true;
+                        setTimeout(() => {
+                            this.makeBotMove();
+                            this.playerTurn = true;
+                            this.isProcessing = false;
+                        }, 1000);
+                    }
                 }
             });
             return;
@@ -166,28 +204,34 @@ class NimGame {
                 }
             });
         }
-        else if (this.gameState === 'playing' && this.playerTurn) {
-            this.stepButtons.forEach((button, index) => {
-                if (button.isPointInside(x, y)) {
-                    const move = index + 1;
-                    this.makeMove(move);
-                    if (this.gameState === 'playing') {
-                        this.playerTurn = false;
-                        this.isProcessing = true;
-                        setTimeout(() => {
-                            this.makeBotMove();
-                            this.playerTurn = true;
-                            this.isProcessing = false;
-                        }, 1000);
+        else if (this.gameState === 'playing') {
+            if ((gameMode === 'ai' && this.playerTurn) || gameMode === '2player') {
+                this.stepButtons.forEach((button, index) => {
+                    if (button.isPointInside(x, y)) {
+                        const move = index + 1;
+                        this.makeMove(move);
+                        if (this.gameState === 'playing') {
+                            if (gameMode === 'ai') {
+                                this.playerTurn = false;
+                                this.isProcessing = true;
+                                setTimeout(() => {
+                                    this.makeBotMove();
+                                    this.playerTurn = true;
+                                    this.isProcessing = false;
+                                }, 1000);
+                            } else {
+                                this.currentPlayer = this.currentPlayer === 1 ? 2 : 1;
+                            }
+                        }
                     }
-                }
-            });
+                });
+            }
         }
         else if (this.gameState === 'gameOver') {
             if (this.playAgainButton.isPointInside(x, y)) {
-                this.gameState = 'chooseTurn';
+                this.gameState = 'selectMode';
                 this.resetGame();
-                this.createButtons();
+                this.createModeButtons();
             }
         }
     }
@@ -260,12 +304,37 @@ class NimGame {
         const maxButtonWidth = deviceType === 'mobile' ? 100 : 150;
         const minSpacing = deviceType === 'mobile' ? 10 : 10;
 
+        if (this.gameState === 'showInstructions') {
+            const buttonWidth = deviceType === 'mobile' ? 180 : 150;
+            const spacing = deviceType === 'mobile' ? 30 : 20;
+            const startX = (CANVAS_WIDTH - buttonWidth) / 2;
+            const startY = CANVAS_HEIGHT - 140;
+            
+            if (gameMode === 'ai') {
+                const totalWidth = buttonWidth * 2 + spacing;
+                const startX = (CANVAS_WIDTH - totalWidth) / 2;
+                this.turnButtons = [
+                    new Button(startX, startY, buttonWidth, buttonHeight, getText('first'), COLORS.BLUE),
+                    new Button(startX + buttonWidth + spacing, startY, buttonWidth, buttonHeight, getText('second'), COLORS.RED)
+                ];
+            } else {
+                this.readyButton = new Button(
+                    startX,
+                    startY,
+                    buttonWidth,
+                    buttonHeight,
+                    getText('ready'),
+                    COLORS.GREEN
+                );
+            }
+        }
+
         if (this.gameState === 'chooseTurn') {
             const buttonWidth = deviceType === 'mobile' ? 180 : 150;
             const spacing = deviceType === 'mobile' ? 30 : 20;
             const totalWidth = buttonWidth * 2 + spacing;
             const startX = (CANVAS_WIDTH - totalWidth) / 2;
-            const startY = this.showRules ? CANVAS_HEIGHT - 140 : CANVAS_HEIGHT / 2 + 50;
+            const startY = CANVAS_HEIGHT - 140;
             
             this.turnButtons = [
                 new Button(startX, startY, buttonWidth, buttonHeight, getText('first'), COLORS.BLUE),
@@ -326,6 +395,15 @@ class NimGame {
             return;
         }
 
+        if (this.gameState === 'selectMode') {
+            ctx.fillStyle = COLORS.BLACK;
+            ctx.font = deviceType === 'mobile' ? '24px Cairo' : '32px Cairo';
+            ctx.textAlign = 'center';
+            ctx.fillText(getText('chooseMode'), CANVAS_WIDTH / 2, CANVAS_HEIGHT / 5);
+            this.modeButtons.forEach(button => button.draw());
+            return;
+        }
+
         ctx.fillStyle = COLORS.BLACK;
         ctx.font = deviceType === 'mobile' ? '36px Cairo' : '36px Cairo';
         ctx.textAlign = 'center';
@@ -368,13 +446,25 @@ class NimGame {
             
             ctx.fillText(`${getText('goal')}: ${this.goal}`, CANVAS_WIDTH / 2, currentY + ruleSpacing * 0.5);
             ctx.fillText(`${getText('maxSteps')}: ${this.steps}`, CANVAS_WIDTH / 2, currentY + ruleSpacing);
+            
+            if (this.gameState === 'showInstructions') {
+                if (gameMode === 'ai') {
+                    ctx.fillText(getText('turnChoice'), CANVAS_WIDTH / 2, currentY + ruleSpacing * 2);
+                    this.turnButtons.forEach(button => button.draw());
+                } else if (this.readyButton) {
+                    this.readyButton.draw();
+                }
+            }
+            return;
         }
 
         if (this.gameState === 'chooseTurn') {
             const turnChoiceY = this.showRules ? CANVAS_HEIGHT - 200 : CANVAS_HEIGHT / 2;
             ctx.font = '24px Cairo';
             ctx.fillText(getText('turnChoice'), CANVAS_WIDTH / 2, turnChoiceY);
-            this.turnButtons.forEach(button => button.draw());
+            if (this.turnButtons) {
+                this.turnButtons.forEach(button => button.draw());
+            }
         } else if (this.gameState === 'playing' || this.gameState === 'gameOver') {
             // Draw progress slider with adjusted position
             const sliderY = this.showRules ? 350 : 250;
@@ -412,15 +502,25 @@ class NimGame {
             }
 
             if (this.gameState === 'playing') {
-                ctx.fillText(
-                    this.playerTurn ? getText('yourTurn') : getText('computerTurn'),
-                    CANVAS_WIDTH / 2,
-                    infoStartY + infoSpacing * 4
-                );
+                if (gameMode === 'ai') {
+                    ctx.fillText(
+                        this.playerTurn ? getText('yourTurn') : getText('computerTurn'),
+                        CANVAS_WIDTH / 2,
+                        infoStartY + infoSpacing * 4
+                    );
+                } else {
+                    ctx.fillText(
+                        `${getText('turn')} ${getText('player')} ${this.currentPlayer}`,
+                        CANVAS_WIDTH / 2,
+                        infoStartY + infoSpacing * 4
+                    );
+                }
                 this.stepButtons.forEach(button => button.draw());
             } else if (this.gameState === 'gameOver') {
                 ctx.fillText(
-                    this.winner === 'player' ? getText('youWon') : getText('youLost'),
+                    gameMode === 'ai' ?
+                        (this.winner === 'player' ? getText('youWon') : getText('youLost')) :
+                        `${getText('player')} ${this.winner === 'player' ? '1' : '2'} ${getText('youWon')}`,
                     CANVAS_WIDTH / 2,
                     infoStartY + infoSpacing * 4
                 );
