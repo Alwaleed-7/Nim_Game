@@ -481,7 +481,7 @@ class NimGame {
                 const buttonWidth = deviceType === 'mobile' ? 180 : 150;
                 this.readyButton = new Button(
                     (CANVAS_WIDTH - buttonWidth) / 2,
-                    CANVAS_HEIGHT * 0.4,
+                    CANVAS_HEIGHT * (deviceType === 'mobile' ? 0.7 : 0.4),
                     buttonWidth,
                     buttonHeight,
                     getText('ready'),
