@@ -16,6 +16,7 @@ let currentLanguage = 'ar';
 let currentDirection = 'rtl';
 let deviceType = 'mobile'; // Default to mobile layout
 let gameMode = 'ai'; // 'ai' or '2player'
+let gameDifficulty = 'medium'; // 'easy', 'medium', or 'hard'
 
 function setDeviceType(type) {
     deviceType = type;
@@ -134,6 +135,13 @@ class NimGame {
             new Button(startX, startY, buttonWidth, buttonHeight, getText('vsComputer'), COLORS.BLUE),
             new Button(startX, startY + buttonHeight + spacing, buttonWidth, buttonHeight, getText('vsPlayer'), COLORS.GREEN)
         ];
+
+        // Add difficulty buttons
+        this.difficultyButtons = [
+            new Button(startX, startY + (buttonHeight + spacing) * 2, buttonWidth, buttonHeight, 'Easy', COLORS.GREEN),
+            new Button(startX, startY + (buttonHeight + spacing) * 3, buttonWidth, buttonHeight, 'Medium', COLORS.BLUE),
+            new Button(startX, startY + (buttonHeight + spacing) * 4, buttonWidth, buttonHeight, 'Hard', COLORS.RED)
+        ];
     }
 
     handleClick(x, y) {
@@ -153,20 +161,34 @@ class NimGame {
         if (this.gameState === 'selectMode') {
             this.modeButtons.forEach((button, index) => {
                 if (button.isPointInside(x, y)) {
-                    gameMode = index === 0 ? 'ai' : '2player';
-                    if (gameMode === '2player') {
+                    if (index === 0) { // vs Computer
+                        this.gameState = 'selectDifficulty';
+                    } else { // vs Player
+                        gameMode = '2player';
                         this.gameState = 'showInstructions';
                         this.showRules = true;
-                    } else {
-                        this.gameState = 'showInstructions';
-                        this.showRules = true;
+                        this.resetGame();
+                        this.createButtons();
                     }
+                }
+            });
+            return;
+        }
+
+        if (this.gameState === 'selectDifficulty') {
+            this.difficultyButtons.forEach((button, index) => {
+                if (button.isPointInside(x, y)) {
+                    gameMode = 'ai';
+                    gameDifficulty = ['easy', 'medium', 'hard'][index];
+                    this.gameState = 'showInstructions';
+                    this.showRules = true;
                     this.resetGame();
                     this.createButtons();
                 }
             });
             return;
         }
+
         if (this.gameState === 'showInstructions' && this.turnButtons) {
             this.turnButtons.forEach((button, index) => {
                 if (button.isPointInside(x, y)) {
@@ -253,30 +275,70 @@ class NimGame {
         let bestMove = 1;
         const remainingSteps = this.goal - this.currentPosition;
 
-        // Try to make a winning move
-        for (let i = 1; i <= this.steps; i++) {
-            if (this.currentPosition + i === this.goal) {
-                bestMove = i;
-                break;
-            }
+        // Easy mode: Make random moves
+        if (gameDifficulty === 'easy') {
+            bestMove = Math.floor(Math.random() * this.steps) + 1;
         }
-
-        // If no winning move, try to get to a position where (remaining steps) % (max steps + 1) = 0
-        if (this.currentPosition + bestMove !== this.goal) {
-            let optimalMoves = [];
+        // Hard mode: Always try to make optimal moves
+        else if (gameDifficulty === 'hard') {
+            // Try to make a winning move
             for (let i = 1; i <= this.steps; i++) {
-                const newPosition = this.currentPosition + i;
-                if (newPosition < this.goal && 
-                    (this.goal - newPosition) % (this.steps + 1) === 0) {
-                    optimalMoves.push(i);
+                if (this.currentPosition + i === this.goal) {
+                    bestMove = i;
+                    break;
                 }
             }
+
+            // If no winning move, try to get to a position where (remaining steps) % (max steps + 1) = 0
+            if (this.currentPosition + bestMove !== this.goal) {
+                for (let i = 1; i <= this.steps; i++) {
+                    const newPosition = this.currentPosition + i;
+                    if (newPosition < this.goal && 
+                        (this.goal - newPosition) % (this.steps + 1) === 0) {
+                        bestMove = i;
+                        break;
+                    }
+                }
+                // If no optimal move found, make a safe move
+                if (this.currentPosition + bestMove === this.goal) {
+                    bestMove = Math.floor(Math.random() * this.steps) + 1;
+                }
+            }
+        }
+        // Medium mode: Mix of random and optimal moves
+        else {
+            const makeOptimalMove = Math.random() < 0.6; // 60% chance of making optimal move
             
-            // If optimal moves found, choose randomly from them
-            if (optimalMoves.length > 0) {
-                bestMove = optimalMoves[Math.floor(Math.random() * optimalMoves.length)];
+            if (makeOptimalMove) {
+                // Try to make a winning move
+                for (let i = 1; i <= this.steps; i++) {
+                    if (this.currentPosition + i === this.goal) {
+                        bestMove = i;
+                        break;
+                    }
+                }
+
+                // If no winning move, try to get to an optimal position
+                if (this.currentPosition + bestMove !== this.goal) {
+                    let optimalMoves = [];
+                    for (let i = 1; i <= this.steps; i++) {
+                        const newPosition = this.currentPosition + i;
+                        if (newPosition < this.goal && 
+                            (this.goal - newPosition) % (this.steps + 1) === 0) {
+                            optimalMoves.push(i);
+                        }
+                    }
+                    
+                    // If optimal moves found, choose randomly from them
+                    if (optimalMoves.length > 0) {
+                        bestMove = optimalMoves[Math.floor(Math.random() * optimalMoves.length)];
+                    } else {
+                        // If no optimal moves, choose a random valid move
+                        bestMove = Math.floor(Math.random() * this.steps) + 1;
+                    }
+                }
             } else {
-                // If no optimal moves, choose a random valid move
+                // Make a random move
                 bestMove = Math.floor(Math.random() * this.steps) + 1;
             }
         }
@@ -401,6 +463,15 @@ class NimGame {
             ctx.textAlign = 'center';
             ctx.fillText(getText('chooseMode'), CANVAS_WIDTH / 2, CANVAS_HEIGHT / 5);
             this.modeButtons.forEach(button => button.draw());
+            return;
+        }
+
+        if (this.gameState === 'selectDifficulty') {
+            ctx.fillStyle = COLORS.BLACK;
+            ctx.font = deviceType === 'mobile' ? '24px Cairo' : '32px Cairo';
+            ctx.textAlign = 'center';
+            ctx.fillText('Select Difficulty', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 5);
+            this.difficultyButtons.forEach(button => button.draw());
             return;
         }
 
