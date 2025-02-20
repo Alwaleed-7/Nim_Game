@@ -25,7 +25,11 @@ const translations = {
         vsPlayer: 'ضد لاعب آخر',
         player: 'اللاعب',
         turn: 'دور',
-        ready: 'جاهز!'
+        ready: 'جاهز!',
+        selectDifficulty: 'اختر المستوى',
+        easy: 'سهل',
+        medium: 'متوسط',
+        hard: 'صعب'
     },
     en: {
         title: 'Nim Game',

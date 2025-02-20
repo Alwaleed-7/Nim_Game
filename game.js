@@ -192,9 +192,9 @@ class NimGame {
 
         // Add difficulty buttons
         this.difficultyButtons = [
-            new Button(startX, startY + (buttonHeight + spacing) * 2, buttonWidth, buttonHeight, 'Easy', COLORS.GREEN),
-            new Button(startX, startY + (buttonHeight + spacing) * 3, buttonWidth, buttonHeight, 'Medium', COLORS.BLUE),
-            new Button(startX, startY + (buttonHeight + spacing) * 4, buttonWidth, buttonHeight, 'Hard', COLORS.RED)
+            new Button(startX, startY + (buttonHeight + spacing) * 2, buttonWidth, buttonHeight, getText('easy'), COLORS.GREEN),
+            new Button(startX, startY + (buttonHeight + spacing) * 3, buttonWidth, buttonHeight, getText('medium'), COLORS.BLUE),
+            new Button(startX, startY + (buttonHeight + spacing) * 4, buttonWidth, buttonHeight, getText('hard'), COLORS.RED)
         ];
     }
 
@@ -591,7 +591,7 @@ class NimGame {
             ctx.fillStyle = COLORS.BLACK;
             ctx.font = deviceType === 'mobile' ? '24px Cairo' : '32px Cairo';
             ctx.textAlign = 'center';
-            ctx.fillText('Select Difficulty', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 5);
+            ctx.fillText(getText('selectDifficulty'), CANVAS_WIDTH / 2, CANVAS_HEIGHT / 5);
             this.difficultyButtons.forEach(button => button.draw());
             return;
         }
