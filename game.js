@@ -386,8 +386,8 @@ class NimGame {
                         break;
                     }
                 }
-                // If no optimal move found, make a safe move
-                if (this.currentPosition + bestMove === this.goal) {
+                // If no optimal move found, make a random move
+                if (this.currentPosition + bestMove === this.goal || bestMove === 1) {
                     bestMove = Math.floor(Math.random() * this.steps) + 1;
                 }
             }
@@ -695,7 +695,7 @@ class NimGame {
             } else if (this.gameState === 'gameOver') {
                 ctx.fillText(
                     gameMode === 'ai' ?
-                        (this.winner === 'player' ? getText('youWon') : getText('youLost')) :
+                        (this.winner === 'player' ? `${getText('youWon')} (${gameDifficulty.charAt(0).toUpperCase() + gameDifficulty.slice(1)})` : getText('youLost')) :
                         `${getText('player')} ${this.winner === 'player' ? '1' : '2'} ${getText('youWon')}`,
                     CANVAS_WIDTH / 2,
                     infoStartY + infoSpacing * 4
