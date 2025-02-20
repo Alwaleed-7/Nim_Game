@@ -345,12 +345,12 @@ class NimGame {
                     this.winner = this.playerTurn ? 'player' : 'computer';
                 }
             } else {
-                if (this.currentPosition > this.goal) {
-                    // If current player exceeds the goal, the other player wins
-                    this.winner = this.currentPlayer === 1 ? 2 : 1;
-                } else if (this.currentPosition === this.goal) {
+                if (this.currentPosition === this.goal) {
                     // If current player reaches the goal exactly, they win
                     this.winner = this.currentPlayer;
+                } else if (this.currentPosition > this.goal) {
+                    // If current player exceeds the goal, they lose (other player wins)
+                    this.winner = this.currentPlayer === 1 ? 2 : 1;
                 }
             }
             this.gameState = 'gameOver';
@@ -696,7 +696,7 @@ class NimGame {
                 ctx.fillText(
                     gameMode === 'ai' ?
                         (this.winner === 'player' ? `${getText('youWon')} (${gameDifficulty.charAt(0).toUpperCase() + gameDifficulty.slice(1)})` : getText('youLost')) :
-                        `${getText('player')} ${this.winner === 'player' ? '1' : '2'} ${getText('youWon')}`,
+                        `${getText('player')} ${this.winner} ${getText('youWon')}`,
                     CANVAS_WIDTH / 2,
                     infoStartY + infoSpacing * 4
                 );
