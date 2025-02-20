@@ -362,9 +362,24 @@ class NimGame {
         let bestMove = 1;
         const remainingSteps = this.goal - this.currentPosition;
 
-        // Easy mode: Make random moves
+        // Easy mode: Make random moves but try to win in last turn
         if (gameDifficulty === 'easy') {
-            bestMove = Math.floor(Math.random() * this.steps) + 1;
+            const remainingToGoal = this.goal - this.currentPosition;
+            const isLastTurn = remainingToGoal <= this.steps;
+            
+            if (isLastTurn) {
+                // Try to make a winning move in the last turn
+                for (let i = 1; i <= this.steps; i++) {
+                    if (this.currentPosition + i === this.goal) {
+                        bestMove = i;
+                        break;
+                    }
+                }
+            }
+            // If no winning move found or not last turn, make a random move
+            if (this.currentPosition + bestMove !== this.goal || !isLastTurn) {
+                bestMove = Math.floor(Math.random() * this.steps) + 1;
+            }
         }
         // Hard mode: Always try to make optimal moves
         else if (gameDifficulty === 'hard') {
@@ -392,11 +407,12 @@ class NimGame {
                 }
             }
         }
-        // Medium mode: Mix of random and optimal moves
+        // Medium mode: Random moves until last 2 turns, then optimal
         else {
-            const makeOptimalMove = Math.random() < 0.6; // 60% chance of making optimal move
+            const remainingMoves = Math.ceil((this.goal - this.currentPosition) / this.steps);
+            const isLastTwoTurns = remainingMoves <= 2;
             
-            if (makeOptimalMove) {
+            if (isLastTwoTurns) {
                 // Try to make a winning move
                 for (let i = 1; i <= this.steps; i++) {
                     if (this.currentPosition + i === this.goal) {
