@@ -1,6 +1,17 @@
 // Game constants
 let CANVAS_WIDTH = Math.min(window.innerWidth * 0.98, 800);
 let CANVAS_HEIGHT = Math.min(window.innerHeight * 0.95, 1000);
+
+// Initialize canvas and context
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+canvas.width = CANVAS_WIDTH;
+canvas.height = CANVAS_HEIGHT;
+canvas.addEventListener('touchstart', () => {
+    if (soundManager.isMobile && !soundManager.isInitialized) {
+        soundManager.initializeSounds();
+    }
+}, { once: true });
 const COLORS = {
     GRAY: '#808080',
     WHITE: '#FFFFFF',
@@ -98,6 +109,14 @@ let deviceType = 'mobile'; // Default to mobile layout
 let gameMode = 'ai'; // 'ai' or '2player'
 let gameDifficulty = 'medium'; // 'easy', 'medium', or 'hard'
 
+// Game loop function
+function gameLoop() {
+    if (game) {
+        game.draw();
+    }
+    requestAnimationFrame(gameLoop);
+}
+
 function setDeviceType(type) {
     deviceType = type;
     // Adjust canvas size based on window size (using mobile dimensions)
@@ -133,13 +152,7 @@ function getText(key, params = {}) {
     return text;
 }
 
-// Get canvas and context
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-
-// Set canvas size
-canvas.width = CANVAS_WIDTH;
-canvas.height = CANVAS_HEIGHT;
+// Note: Canvas and context are already initialized at the top of the file
 
 // Button class
 class Button {
