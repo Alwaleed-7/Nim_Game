@@ -711,7 +711,7 @@ class NimGame {
             } else if (this.gameState === 'gameOver') {
                 ctx.fillText(
                     gameMode === 'ai' ?
-                        (this.winner === 'player' ? `${getText('youWon')} (${gameDifficulty.charAt(0).toUpperCase() + gameDifficulty.slice(1)})` : getText('youLost')) :
+                        (this.winner === 'player' ? `${getText('youWon')} (${getText(gameDifficulty)})` : getText('youLost')) :
                         `${getText('player')} ${this.winner} ${getText('youWon')}`,
                     CANVAS_WIDTH / 2,
                     infoStartY + infoSpacing * 4
