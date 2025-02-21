@@ -24,6 +24,68 @@
 <body>
     <canvas id="gameCanvas"></canvas>
     <script src="lang.js"></script>
+    <script src="sounds.js"></script>
     <script src="game.js"></script>
+    <script>
+        // Initialize game instance
+        const game = new NimGame();
+        
+        // Start game loop
+        gameLoop();
+        
+        // Add keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (game.gameState === 'playing' && (gameMode === 'ai' ? game.playerTurn : true)) {
+                const key = e.key;
+                if (key >= '1' && key <= String(game.steps)) {
+                    const move = parseInt(key);
+                    game.makeMove(move);
+                    soundManager.play('move');
+                    if (game.gameState === 'playing' && gameMode === 'ai') {
+                        game.playerTurn = false;
+                        game.isProcessing = true;
+                        setTimeout(() => {
+                            game.makeBotMove();
+                            game.playerTurn = true;
+                            game.isProcessing = false;
+                        }, 1000);
+                    } else if (gameMode === '2player') {
+                        game.currentPlayer = game.currentPlayer === 1 ? 2 : 1;
+                    }
+                }
+            }
+        });
+        
+        // Add click event listener
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            // Check mute button click
+            if (game.muteButton.isPointInside(x, y)) {
+                game.muteButton.toggle();
+                return;
+            }
+            
+            game.handleClick(x, y);
+        });
+        
+        // Add mousemove event listener
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            game.handleMouseMove(x, y);
+        });
+        
+        // Set initial device type
+        setDeviceType(window.innerWidth <= 768 ? 'mobile' : 'desktop');
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            setDeviceType(window.innerWidth <= 768 ? 'mobile' : 'desktop');
+        });
+    </script>
 </body>
 </html>

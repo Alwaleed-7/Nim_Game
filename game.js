@@ -15,6 +15,77 @@ const COLORS = {
     TEXT_SECONDARY: '#757575'
 };
 
+// Add mute state
+let isMuted = localStorage.getItem('nimGameMuted') === 'true';
+
+// Create mute button class
+class MuteButton {
+    constructor() {
+        this.width = 40;
+        this.height = 40;
+        this.x = CANVAS_WIDTH - this.width - 10;
+        this.y = 10;
+        this.isHovered = false;
+        soundManager.setMuted(isMuted);
+    }
+
+    draw() {
+        ctx.save();
+        ctx.shadowColor = 'rgba(0,0,0,0.3)';
+        ctx.shadowBlur = 5;
+        ctx.shadowOffsetY = 2;
+
+        // Draw button background
+        ctx.beginPath();
+        ctx.arc(this.x + this.width/2, this.y + this.height/2, this.width/2, 0, Math.PI * 2);
+        ctx.fillStyle = this.isHovered ? COLORS.HOVER : COLORS.GRAY;
+        ctx.fill();
+
+        // Draw speaker icon
+        ctx.fillStyle = COLORS.WHITE;
+        ctx.beginPath();
+        ctx.moveTo(this.x + 12, this.y + 15);
+        ctx.lineTo(this.x + 18, this.y + 15);
+        ctx.lineTo(this.x + 25, this.y + 10);
+        ctx.lineTo(this.x + 25, this.y + 30);
+        ctx.lineTo(this.x + 18, this.y + 25);
+        ctx.lineTo(this.x + 12, this.y + 25);
+        ctx.closePath();
+        ctx.fill();
+
+        // Draw sound waves or X based on mute state
+        if (!isMuted) {
+            ctx.beginPath();
+            ctx.arc(this.x + 25, this.y + 20, 5, -Math.PI/3, Math.PI/3);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(this.x + 25, this.y + 20, 8, -Math.PI/3, Math.PI/3);
+            ctx.stroke();
+        } else {
+            ctx.beginPath();
+            ctx.moveTo(this.x + 28, this.y + 13);
+            ctx.lineTo(this.x + 33, this.y + 27);
+            ctx.strokeStyle = COLORS.WHITE;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+        ctx.restore();
+    }
+
+    isPointInside(x, y) {
+        const centerX = this.x + this.width/2;
+        const centerY = this.y + this.height/2;
+        const distance = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
+        return distance <= this.width/2;
+    }
+
+    toggle() {
+        isMuted = !isMuted;
+        localStorage.setItem('nimGameMuted', isMuted);
+        soundManager.setMuted(isMuted);
+    }
+}
+
 // Helper function to adjust color brightness
 function adjustColor(color, amount) {
     return '#' + color.replace(/^#/, '').replace(/../g, color => ('0'+Math.min(255, Math.max(0, parseInt(color, 16) + amount)).toString(16)).substr(-2));
@@ -147,6 +218,7 @@ class NimGame {
         this.gameState = 'selectLanguage';
         this.lastClickTime = 0;
         this.lastHoverTime = 0;
+        this.muteButton = new MuteButton();
         this.resetGame();
         this.createLanguageButtons();
         this.createModeButtons();
@@ -199,6 +271,13 @@ class NimGame {
     }
 
     handleClick(x, y) {
+        // Check mute button click first
+        if (this.muteButton.isPointInside(x, y)) {
+            this.muteButton.toggle();
+            this.draw();
+            return;
+        }
+
         // Prevent any clicks during processing or too rapid clicks
         if (this.isProcessing) {
             return;
@@ -215,6 +294,7 @@ class NimGame {
         if (this.gameState === 'selectLanguage') {
             this.languageButtons.forEach((button, index) => {
                 if (button.isPointInside(x, y)) {
+                    soundManager.play('click');
                     setLanguage(index === 0 ? 'ar' : 'en');
                     this.gameState = 'selectMode';
                     this.createModeButtons();
@@ -226,6 +306,7 @@ class NimGame {
         if (this.gameState === 'selectMode') {
             this.modeButtons.forEach((button, index) => {
                 if (button.isPointInside(x, y)) {
+                    soundManager.play('click');
                     if (index === 0) { // vs Computer
                         this.gameState = 'selectDifficulty';
                     } else { // vs Player
@@ -243,6 +324,7 @@ class NimGame {
         if (this.gameState === 'selectDifficulty') {
             this.difficultyButtons.forEach((button, index) => {
                 if (button.isPointInside(x, y)) {
+                    soundManager.play('click');
                     gameMode = 'ai';
                     gameDifficulty = ['easy', 'medium', 'hard'][index];
                     this.gameState = 'showInstructions';
@@ -273,6 +355,7 @@ class NimGame {
                     }
                 });
             } else if (gameMode === '2player' && this.readyButton && this.readyButton.isPointInside(x, y)) {
+                soundManager.play('click');
                 this.gameState = 'playing';
                 this.showRules = false;
                 this.currentPlayer = 1;
@@ -335,22 +418,27 @@ class NimGame {
 
     makeMove(steps) {
         this.currentPosition += steps;
+        soundManager.play('move');
         if (this.currentPosition >= this.goal) {
             if (gameMode === 'ai') {
                 if (this.currentPosition > this.goal) {
                     // If player exceeds goal, they lose
                     this.winner = this.playerTurn ? 'computer' : 'player';
+                    soundManager.play(this.playerTurn ? 'lose' : 'win');
                 } else {
                     // If player reaches goal exactly, they win
                     this.winner = this.playerTurn ? 'player' : 'computer';
+                    soundManager.play(this.playerTurn ? 'win' : 'lose');
                 }
             } else {
                 if (this.currentPosition === this.goal) {
                     // If current player reaches the goal exactly, they win
                     this.winner = this.currentPlayer;
+                    soundManager.play('win');
                 } else if (this.currentPosition > this.goal) {
                     // If current player exceeds the goal, they lose (other player wins)
                     this.winner = this.currentPlayer === 1 ? 2 : 1;
+                    soundManager.play('lose');
                 }
             }
             this.gameState = 'gameOver';
@@ -451,6 +539,13 @@ class NimGame {
     }
 
     handleMouseMove(x, y) {
+        // Check mute button hover
+        const wasMuteButtonHovered = this.muteButton.isHovered;
+        this.muteButton.isHovered = this.muteButton.isPointInside(x, y);
+        if (wasMuteButtonHovered !== this.muteButton.isHovered) {
+            this.draw();
+        }
+
         if (!this.lastHoverTime || Date.now() - this.lastHoverTime >= 50) {
             this.lastHoverTime = Date.now();
             const buttons = [
@@ -559,6 +654,7 @@ class NimGame {
         ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
         ctx.fillStyle = COLORS.WHITE;
         ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        this.muteButton.draw();
 
         if (this.gameState === 'selectLanguage') {
             ctx.save();
